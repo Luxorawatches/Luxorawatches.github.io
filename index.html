@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -140,6 +141,23 @@
   .empty-gallery{text-align:center;padding:40px 20px;color:var(--gray-400);}
   .empty-gallery .emoji{font-size:48px;margin-bottom:12px;}
 </style>
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1045227898411768');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1045227898411768&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
 </head>
 <body>
 
@@ -457,6 +475,21 @@ const orderFormView=document.getElementById('orderFormView');
 const successView=document.getElementById('successView');
 const submitBtn=document.getElementById('submitBtn');
 
+// Meta Pixel events
+let metaViewContentSent = false;
+function trackViewContent(){
+  if(window.fbq && !metaViewContentSent){
+    fbq('track','ViewContent',{content_name:'ساعة ROLEX',content_type:'product'});
+    metaViewContentSent = true;
+  }
+}
+function trackInitiateCheckout(){
+  if(window.fbq){
+    fbq('track','InitiateCheckout',{content_name:'ساعة ROLEX',content_type:'product',value:2550,currency:'DZD'});
+  }
+}
+
+
 let badgeClicks=0, badgeTimer=null;
 heroBadge.addEventListener('click',()=>{
   badgeClicks++;
@@ -533,7 +566,7 @@ function renderProductGallery(){
 }
 
 document.getElementById('openModalBtn').addEventListener('click',()=>{
-  modalOverlay.classList.add('open');
+  modalOverlay.classList.add('open');trackViewContent();
   orderFormView.style.display='';
   successView.style.display='none';
   updateSummary();
@@ -567,10 +600,17 @@ submitBtn.addEventListener('click',async()=>{
     `💵 *المجموع الكلي:* ${total.toLocaleString('ar-DZ')} دج\n`+
     `✅ *الدفع عند الاستلام*`;
   submitBtn.disabled=true;submitBtn.textContent='⏳ جاري الإرسال...';
+  trackInitiateCheckout();
   try{
     const res=await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_CHAT_ID,text:msg,parse_mode:'Markdown'})});
     const data=await res.json();
-    if(data.ok){orderFormView.style.display='none';successView.style.display='block';}
+    if(data.ok){
+      orderFormView.style.display='none';
+      successView.style.display='block';
+      if(window.fbq){
+        fbq('track','Purchase',{content_name:'ساعة ROLEX',content_type:'product',value:2550,currency:'DZD'});
+      }
+    }
     else throw new Error(data.description);
   }catch(err){alert('حدث خطأ في الإرسال. تحقق من اتصالك.');submitBtn.disabled=false;submitBtn.textContent='📦 تأكيد الطلب';}
 });
@@ -580,20 +620,3 @@ window.addEventListener('load',()=>{populateWilayas();renderProductGallery();});
 </script>
 </body>
 </html>
-<!-- Meta Pixel Code -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1045227898411768');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1045227898411768&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->
